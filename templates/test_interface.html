@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Autenticación - Panel de Pruebas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        .response {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            display: none;
+        }
+
+        .response.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .response.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .status-badge.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .endpoint-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .endpoint-list li {
+            padding: 10px;
+            background: #f8f9fa;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            border-left: 3px solid #667eea;
+        }
+
+        .code-display {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sistema de Autenticación - Panel de Pruebas</h1>
+
+        <!-- RS1: Registro -->
+        <div class="card">
+            <h2>RS1: Registro de Usuario <span class="status-badge pending">Requisito 1</span></h2>
+            <div class="form-group">
+                <label>Nombre:</label>
+                <input type="text" id="reg-nombre" value="Juan">
+            </div>
+            <div class="form-group">
+                <label>Apellido:</label>
+                <input type="text" id="reg-apellido" value="Pérez">
+            </div>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="reg-mail" value="juan.perez@example.com">
+            </div>
+            <div class="form-group">
+                <label>Teléfono:</label>
+                <input type="text" id="reg-telefono" value="593987654321">
+            </div>
+            <button onclick="registrarUsuario()">Registrar Usuario</button>
+            <div class="loading" id="loading-registro">Procesando...</div>
+            <div class="response" id="response-registro"></div>
+        </div>
+
+        <!-- RS1: Validación -->
+        <div class="card">
+            <h2>RS1: Validar Cuenta <span class="status-badge pending">Requisito 1</span></h2>
+            <div class="form-group">
+                <label>Usuario:</label>
+                <input type="text" id="val-usuario" placeholder="Copiar de respuesta anterior">
+            </div>
+            <div class="form-group">
+                <label>Código de Validación:</label>
+                <input type="text" id="val-codigo" placeholder="Copiar de respuesta anterior">
+            </div>
+            <button onclick="validarCuenta()">Validar Cuenta</button>
+            <div class="loading" id="loading-validacion">Procesando...</div>
+            <div class="response" id="response-validacion"></div>
+        </div>
+
+        <!-- RS2: Login -->
+        <div class="card">
+            <h2>RS2: Iniciar Sesión <span class="status-badge pending">Requisito 2</span></h2>
+            <div class="form-group">
+                <label>Usuario:</label>
+                <input type="text" id="login-usuario">
+            </div>
+            <div class="form-group">
+                <label>Contraseña:</label>
+                <input type="password" id="login-password">
+            </div>
+            <button onclick="login()">Iniciar Sesión</button>
+            <div class="loading" id="loading-login">Procesando...</div>
+            <div class="response" id="response-login"></div>
+        </div>
+
+        <!-- RS2: Segundo Factor -->
+        <div class="card">
+            <h2>RS2: Segundo Factor de Autenticación <span class="status-badge pending">Requisito 2</span></h2>
+            <div class="form-group">
+                <label>ID Usuario:</label>
+                <input type="number" id="2fa-usuario-id" placeholder="Copiar de respuesta de login">
+            </div>
+            <div class="form-group">
+                <label>Código 2FA:</label>
+                <input type="text" id="2fa-codigo" placeholder="Copiar de respuesta de login">
+            </div>
+            <button onclick="verificar2FA()">Verificar Código</button>
+            <div class="loading" id="loading-2fa">Procesando...</div>
+            <div class="response" id="response-2fa"></div>
+        </div>
+
+        <!-- RS4: Recuperación -->
+        <div class="card">
+            <h2>RS4: Recuperar Cuenta <span class="status-badge pending">Requisito 4</span></h2>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="rec-mail" value="juan.perez@example.com">
+            </div>
+            <button onclick="recuperarCuenta()"> Recuperar Cuenta</button>
+            <div class="loading" id="loading-recuperar">Procesando...</div>
+            <div class="response" id="response-recuperar"></div>
+        </div>
+
+        <!-- RS3, RS5, RS7: Consultas -->
+        <div class="card">
+            <h2>RS3: Auditoría y Consultas <span class="status-badge pending">Requisito 3</span></h2>
+            <button onclick="obtenerUsuarios()">👥 Ver Usuarios</button>
+            <button onclick="obtenerAuditoria()"> Ver Auditoría</button>
+            <button onclick="obtenerSesiones()"> Sesiones Activas</button>
+            <div class="loading" id="loading-consultas">Procesando...</div>
+            <div class="response" id="response-consultas"></div>
+        </div>
+
+        <!-- Información del API -->
+        <div class="card">
+            <h2> Endpoints Disponibles</h2>
+            <ul class="endpoint-list">
+                <li><strong>POST</strong> /api/registro - Registrar usuario</li>
+                <li><strong>POST</strong> /api/validar-cuenta - Validar cuenta</li>
+                <li><strong>POST</strong> /api/login - Iniciar sesión</li>
+                <li><strong>POST</strong> /api/verificar-segundo-factor - Verificar 2FA</li>
+                <li><strong>POST</strong> /api/recuperar-cuenta - Recuperar cuenta</li>
+                <li><strong>GET</strong> /api/usuarios - Listar usuarios</li>
+                <li><strong>GET</strong> /api/auditoria - Ver auditoría</li>
+                <li><strong>GET</strong> /api/sesiones-activas - Ver sesiones</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+
+        function mostrarRespuesta(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = 'response ' + (isError ? 'error' : 'success');
+            element.textContent = JSON.stringify(data, null, 2);
+        }
+
+        function mostrarLoading(elementId, mostrar) {
+            document.getElementById(elementId).style.display = mostrar ? 'block' : 'none';
+        }
+
+        async function registrarUsuario() {
+            mostrarLoading('loading-registro', true);
+            try {
+                const response = await fetch(`${API_URL}/registro`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        nombre: document.getElementById('reg-nombre').value,
+                        apellido: document.getElementById('reg-apellido').value,
+                        mail: document.getElementById('reg-mail').value,
+                        telefono: document.getElementById('reg-telefono').value
+                    })
+                });
+                const data = await response.json();
+                mostrarRespuesta('response-registro', data, !response.ok);
+                
+                // Auto-completar campos
+                if (response.ok) {
+                    document.getElementById('val-usuario').value = data.usuario;
+                    document.getElementById('val-codigo').value = data.codigo_validacion;
+                    document.getElementById('login-usuario').value = data.usuario;
+                    document.getElementById('login-password').value = data.password;
+                }
+            } catch (error) {
+                mostrarRespuesta('response-registro', {error: error.message}, true);
+            }
+            mostrarLoading('loading-registro', false);
+        }
+
+        async function validarCuenta() {
+            mostrarLoading('loading-validacion', true);
+            try {
+                const response = await fetch(`${API_URL}/validar-cuenta`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        usuario: document.getElementById('val-usuario').value,
+                        codigo: document.getElementById('val-codigo').value
+                    })
+                });
+                const data = await response.json();
+                mostrarRespuesta('response-validacion', data, !response.ok);
+            } catch (error) {
+                mostrarRespuesta('response-validacion', {error: error.message}, true);
+            }
+            mostrarLoading('loading-validacion', false);
+        }
+
+        async function login() {
+            mostrarLoading('loading-login', true);
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        usuario: document.getElementById('login-usuario').value,
+                        password: document.getElementById('login-password').value
+                    })
+                });
+                const data = await response.json();
+                mostrarRespuesta('response-login', data, !response.ok);
+                
+                // Auto-completar campos
+                if (response.ok) {
+                    document.getElementById('2fa-usuario-id').value = data.usuario_id;
+                    document.getElementById('2fa-codigo').value = data.codigo_2fa;
+                }
+            } catch (error) {
+                mostrarRespuesta('response-login', {error: error.message}, true);
+            }
+            mostrarLoading('loading-login', false);
+        }
+
+        async function verificar2FA() {
+            mostrarLoading('loading-2fa', true);
+            try {
+                const response = await fetch(`${API_URL}/verificar-segundo-factor`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        usuario_id: parseInt(document.getElementById('2fa-usuario-id').value),
+                        codigo: document.getElementById('2fa-codigo').value
+                    })
+                });
+                const data = await response.json();
+                mostrarRespuesta('response-2fa', data, !response.ok);
+            } catch (error) {
+                mostrarRespuesta('response-2fa', {error: error.message}, true);
+            }
+            mostrarLoading('loading-2fa', false);
+        }
+
+        async function recuperarCuenta() {
+            mostrarLoading('loading-recuperar', true);
+            try {
+                const response = await fetch(`${API_URL}/recuperar-cuenta`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        mail: document.getElementById('rec-mail').value
+                    })
+                });
+                const data = await response.json();
+                mostrarRespuesta('response-recuperar', data, !response.ok);
+            } catch (error) {
+                mostrarRespuesta('response-recuperar', {error: error.message}, true);
+            }
+            mostrarLoading('loading-recuperar', false);
+        }
+
+        async function obtenerUsuarios() {
+            mostrarLoading('loading-consultas', true);
+            try {
+                const response = await fetch(`${API_URL}/usuarios`);
+                const data = await response.json();
+                mostrarRespuesta('response-consultas', data, !response.ok);
+            } catch (error) {
+                mostrarRespuesta('response-consultas', {error: error.message}, true);
+            }
+            mostrarLoading('loading-consultas', false);
+        }
+
+        async function obtenerAuditoria() {
+            mostrarLoading('loading-consultas', true);
+            try {
+                const response = await fetch(`${API_URL}/auditoria`);
+                const data = await response.json();
+                mostrarRespuesta('response-consultas', data, !response.ok);
+            } catch (error) {
+                mostrarRespuesta('response-consultas', {error: error.message}, true);
+            }
+            mostrarLoading('loading-consultas', false);
+        }
+
+        async function obtenerSesiones() {
+            mostrarLoading('loading-consultas', true);
+            try {
+                const response = await fetch(`${API_URL}/sesiones-activas`);
+                const data = await response.json();
+                mostrarRespuesta('response-consultas', data, !response.ok);
+            } catch (error) {
+                mostrarRespuesta('response-consultas', {error: error.message}, true);
+            }
+            mostrarLoading('loading-consultas', false);
+        }
+    </script>
+</body>
+</html>
